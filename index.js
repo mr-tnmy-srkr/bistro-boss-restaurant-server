@@ -55,24 +55,24 @@ const verifyToken = (req, res, next) => {
 } 
 
 // use verify admin after verifyToken
-/* const verifyAdmin = async (req, res, next) => {
+const verifyAdmin = async (req, res, next) => {
   const email = req.decoded.email;
   const query = { email: email };
-  const user = await userCollection.findOne(query);
+  const user = await usersCollection.findOne(query);
   const isAdmin = user?.role === 'admin';
   if (!isAdmin) {
     return res.status(403).send({ message: 'forbidden access' });
   }
   next();
-} */
+} 
 
     // users related apis
-    app.get("/users",verifyToken, async (req, res) => {
+    app.get("/users",verifyToken,verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
-    app.get("/users/admin/:email", async (req, res) => {
+    app.get("/users/admin/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
 
       if (email !== req.decoded.email) {
@@ -80,7 +80,7 @@ const verifyToken = (req, res, next) => {
       }
 
       const query = { email: email };
-      const user = await userCollection.findOne(query);
+      const user = await usersCollection.findOne(query);
       let admin = false;
       if (user) {
         admin = user?.role === "admin";
@@ -101,7 +101,7 @@ const verifyToken = (req, res, next) => {
       res.send(result);
     });
     //make admin
-    app.patch("/users/admin/:id", async (req, res) => {
+    app.patch("/users/admin/:id",verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -113,7 +113,7 @@ const verifyToken = (req, res, next) => {
       res.send(result);
     });
 
-    app.delete("/users/:id", async (req, res) => {
+    app.delete("/users/:id",verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await usersCollection.deleteOne(query);
